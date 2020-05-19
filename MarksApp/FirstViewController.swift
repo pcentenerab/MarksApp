@@ -12,7 +12,6 @@ class FirstViewController: UIViewController {
     
     let subjectModel = (UIApplication.shared.delegate as! AppDelegate).subjectModel
     @IBOutlet weak var activityIndicatorView: UIActivityIndicatorView!
-    @IBOutlet weak var cancelButton: UIButton!
     @IBOutlet weak var restartButton: UIButton!
     @IBOutlet weak var stateLabel: UILabel!
     
@@ -25,11 +24,6 @@ class FirstViewController: UIViewController {
                 self.performSegue(withIdentifier: "Start App", sender: self)
             }
         }
-    }
-    
-    @IBAction func cancel(_ sender: Any) {
-        self.activityIndicatorView.stopAnimating()
-        exit(0)
     }
     
     @IBAction func restart(_ sender: Any) {

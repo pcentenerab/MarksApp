@@ -2,9 +2,8 @@ var globalObject;
 
 function setup() {
     globalObject = {
-    drizzle:{},
-        drizzleState: {},
-        account: ''
+        drizzle:{},
+        drizzleState: {}
     }
     // let drizzle know what contract we want
     const options = {
@@ -86,7 +85,7 @@ function getValue(asignatura, atributo, key) {
             } else if (atributo == "getNota") {
                 if (globalObject.drizzleState.contracts[asignatura][atributo].hasOwnProperty(key)) {
                     let object = globalObject.drizzleState.contracts[asignatura][atributo][key].value
-                    datos = object.tipo+" "+object.calificacion;
+                    datos = object.tipo+" "+object.calificacion+" KeyObtenida: "+key;
                 } else {
                     datos = "undefined undefined"
                 }

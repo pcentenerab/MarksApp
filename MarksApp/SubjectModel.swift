@@ -528,7 +528,7 @@ extension SubjectModel: WKScriptMessageHandler, WKNavigationDelegate {
                                 }
                             }
                         } else if atributo == "getNota" {
-                            //Había parámetro y son los datos de la evaluación consultada
+                            //Había parámetro y son los datos de una evaluación
                             let tipo = Int(datos)
                             let calificacion = Int(array[6])
                             var tipoNota = Subject.TipoNota.NP
@@ -542,6 +542,9 @@ extension SubjectModel: WKScriptMessageHandler, WKNavigationDelegate {
                             default:
                                 tipoNota = Subject.TipoNota.NP
                             }
+                            let claveObtenida = String(array[8])
+                            let clavesGetNota = (self.keys![asignatura]![atributo] as! [String:[String]])[self.actualUserAccount]
+                            let evalObtenida = clavesGetNota?.firstIndex(of: claveObtenida)
                             let notaObject = Subject.Nota(tipo: tipoNota, calificacion: calificacion!)
                             let index = self.subjectsAcronyms.firstIndex(of: asignatura)
                             let account = self.actualUserAccount
@@ -559,19 +562,12 @@ extension SubjectModel: WKScriptMessageHandler, WKNavigationDelegate {
                                 if (self.availableSubjects[index!].calificaciones?.keys.contains(account!))! {
                                     //Hay alguna nota ya del alumno
                                     //Compruebo que no me haya llegado la misma
-                                    let evalEsperada = Int(arrayEsperado[5])
-                                    var evalLlegada = -1
-                                    for e in self.availableSubjects[index!].calificaciones![account!]! {
-                                        if e.value == notaObject {
-                                            evalLlegada = e.key
-                                        }
-                                    }
-                                    if self.availableSubjects[index!].calificaciones![account!]!.keys.contains(evalLlegada) {
-                                        //Ya tengo dato para esa evaluación
+                                    if evalIndex != evalObtenida {
+                                        //No era la que esperaba
                                         print("Me ha llegado repetido")
-                                        self.webView.evaluateJavaScript(self.script+"getValue(\"\(asignatura)\", \"\(atributo)\", \"\(String(describing: (self.keys[asignatura]![atributo] as! [String:[String]])[account!]![evalEsperada!]))\")", completionHandler: nil)
+                                        self.webView.evaluateJavaScript(self.script+"getValue(\"\(asignatura)\", \"\(atributo)\", \"\(String(describing: (self.keys[asignatura]![atributo] as! [String:[String]])[account!]![evalIndex!]))\")", completionHandler: nil)
                                     } else {
-                                        //No tengo dato para esa evaluación, la guardo
+                                        //ERA ESA. No tengo dato para esa evaluación, la guardo
                                         self.availableSubjects[index!].calificaciones![account!]![evalIndex!] = notaObject
                                         pending?.removeFirst()
                                         self.pending[asignatura] = pending

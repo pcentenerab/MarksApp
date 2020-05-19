@@ -19,14 +19,12 @@ class LoadingViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        print(self.subject)
         self.getMatriculas()
         
     }
     
     func getMatriculas() {
         if self.subject.matriculasLength == nil {
-            print(self.subject.matriculasLength)
             self.subjectModel.call(asignatura: self.subject.acronimo, atributo: "matriculasLength", account: self.userAccount!)
             Timer.scheduledTimer(withTimeInterval: 0.4, repeats: true) { timer in
                 self.stateLabel.text = self.subjectModel.loadSubjectState
