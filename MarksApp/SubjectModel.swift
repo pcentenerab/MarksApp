@@ -2,7 +2,7 @@
 //  SubjectModel.swift
 //  MarksApp
 //
-//  Created by Belén on 14/05/2020.
+//  Created by Patricia on 14/05/2020.
 //  Copyright © 2020 IWEB. All rights reserved.
 //
 
@@ -20,13 +20,14 @@ struct Subject: Codable {
     var nombre: String
     var curso: String?
     
-    struct Evaluacion: Codable {
+    struct Evaluacion: Codable, Equatable {
         var nombre: String
         var fecha: Int
         var puntos: Int
     }
     
     var evaluaciones: [Evaluacion?]?
+    var evaluacionesLength: Int?
     
     struct DatosAlumno: Codable {
         var nombre: String
@@ -37,6 +38,7 @@ struct Subject: Codable {
     var datosAlumno: [String: DatosAlumno?]?
     // direcciones de los alumnos matriculados
     var matriculas: [String]?
+    var matriculasLength: Int?
     
     enum TipoNota: String, Codable {
         case NP
@@ -44,7 +46,7 @@ struct Subject: Codable {
         case MH
     }
     
-    struct Nota: Codable {
+    struct Nota: Codable, Equatable {
         var tipo: TipoNota
         var calificacion: Int
     }
@@ -62,7 +64,9 @@ let MessageHandler = "didFetchValue"
 
 class SubjectModel: UIViewController {
     
-    var state: String!
+    var setupState: String!
+    var loadSubjectState: String!
+    var registeringState: String!
     var availableSubjects = [Subject]()
     var registeredSubjects = [Subject]()
     var subjectsAcronyms: [String] = ["FTEL", "PROG", "CORE", "IWEB"]
@@ -70,14 +74,17 @@ class SubjectModel: UIViewController {
     var webView: WKWebView!
     var script: String!
     var lastMessages: [String]!
-    var subjectLoaded: Bool!
-    // asignatura -> atributo -> clave
-    var keys: [String:[String:String]]!
-    var pending: [String:Int]!
+    // asignatura -> atributo -> clave o array/dicc
+    var keys: [String:[String:Any]]!
+    var pending: [String:Any]!
+    var actualUserAccount: String!
+    var registerCount: Int!
+    var stackId: Int!
+    var registeringTxHash: String!
     
     func setup() -> Bool {
         //Importo todos los ficheros necesarios
-        self.state = "Importando contratos..."
+        self.setupState = "Importando contratos..."
         let config = WKWebViewConfiguration()
         
         let contentController = WKUserContentController()
@@ -121,7 +128,7 @@ class SubjectModel: UIViewController {
         self.script = try! String(contentsOfFile: scriptPath, encoding: .utf8)
         self.webView.load(URLRequest(url: URL(fileURLWithPath: scriptPath)))
         
-        self.state = "Importando lógica Javascript..."
+        self.setupState = "Importando lógica Javascript..."
 
         print("¿Cargando app.js?")
         print(self.webView.isLoading ? "Sí. Hay que esperar" : "Ya he terminado!")
@@ -131,129 +138,179 @@ class SubjectModel: UIViewController {
         print(self.webView.isLoading ? "Sí. Hay que esperar" : "Ya he terminado!")
         print("")
         
-        self.state = "Configurando Drizzle..."
+        self.setupState = "Configurando Drizzle..."
 
         self.webView.evaluateJavaScript(self.script+"setup()", completionHandler: nil)
         self.lastMessages = ["Primer mensaje"]
-        self.subjectLoaded = false
+        self.loadSubjectState = "Consultando matrículas..."
+        self.registeringState = ""
+        self.actualUserAccount = ""
+        self.stackId = 0
+        self.registeringTxHash = ""
         self.keys = [
             "FTEL": [
                 "profesor":"",
                 "acronimo":"",
                 "nombre":"",
                 "curso":"",
-                "evaluaciones":"",
-                "datosAlumno":"",
-                "matriculas":"",
-                "calificaciones":""
+                "evaluaciones":[],
+                "datosAlumno":[],
+                "matriculas":[],
+                "getNota":[:],
+                "matriculasLength":"",
+                "evaluacionesLength":""
             ],
             "PROG": [
                 "profesor":"",
                 "acronimo":"",
                 "nombre":"",
                 "curso":"",
-                "evaluaciones":"",
-                "datosAlumno":"",
-                "matriculas":"",
-                "calificaciones":""
+                "evaluaciones":[],
+                "datosAlumno":[],
+                "matriculas":[],
+                "getNota":[:],
+                "matriculasLength":"",
+                "evaluacionesLength":""
             ],
             "CORE": [
                 "profesor":"",
                 "acronimo":"",
                 "nombre":"",
                 "curso":"",
-                "evaluaciones":"",
-                "datosAlumno":"",
-                "matriculas":"",
-                "calificaciones":""
+                "evaluaciones":[],
+                "datosAlumno":[],
+                "matriculas":[],
+                "getNota":[:],
+                "matriculasLength":"",
+                "evaluacionesLength":""
             ],
             "IWEB": [
                 "profesor":"",
                 "acronimo":"",
                 "nombre":"",
                 "curso":"",
-                "evaluaciones":"",
-                "datosAlumno":"",
-                "matriculas":"",
-                "calificaciones":""
+                "evaluaciones":[],
+                "datosAlumno":[],
+                "matriculas":[],
+                "getNota":[:],
+                "matriculasLength":"",
+                "evaluacionesLength":""
             ]
         ]
         self.pending = [
             "Any": -1,
-            "FTEL": -1,
-            "PROG": -1,
-            "CORE": -1,
-            "IWEB": -1
+            "FTEL": [],
+            "PROG": [],
+            "CORE": [],
+            "IWEB": []
         ]
 
         //añado subjects por defecto
-        for i in 0...(subjectsAcronyms.count-1) {
-            availableSubjects.append(Subject(acronimo: subjectsAcronyms[i], nombre: subjectNames[i]))
-            //QUITAR ? DEL STRUCT SUBJECT
-            if i == 0 || i == 1 {
-                availableSubjects[i].matriculas = ["0xc8b3c04f40aDBb94FeD606B185fcBDD87180Fc8F"]
-                availableSubjects[i].evaluaciones = []
-                let evaluacion1 = Subject.Evaluacion(nombre: "Parcial 1", fecha: 10, puntos: 50)
-                let evaluacion2 = Subject.Evaluacion(nombre: "Parcial 2", fecha: 1, puntos: 50)
-                availableSubjects[i].evaluaciones = [evaluacion1, evaluacion2]
-                availableSubjects[i].calificaciones = [:]
-                let nota1 = Subject.Nota(tipo: Subject.TipoNota.Normal, calificacion: 7)
-                let nota2 = Subject.Nota(tipo: Subject.TipoNota.MH, calificacion: 10)
-                availableSubjects[i].calificaciones!["0xc8b3c04f40aDBb94FeD606B185fcBDD87180Fc8F"] = [0:nota1, 1:nota2]
-            } else {
-                availableSubjects[i].evaluaciones = []
-                let evaluacion1 = Subject.Evaluacion(nombre: "Parcial 1", fecha: 10, puntos: 50)
-                let evaluacion2 = Subject.Evaluacion(nombre: "Parcial 2", fecha: 1, puntos: 50)
-                availableSubjects[i].evaluaciones = [evaluacion1, evaluacion2]
-            }
+        for i in 0...(self.subjectsAcronyms.count-1) {
+            self.availableSubjects.append(Subject(acronimo: subjectsAcronyms[i], nombre: subjectNames[i]))
         }
-        //print(self.availableSubjects)
         return true
     }
-  /*
-    func logged(_ account: String) {
-        //print(self.availableSubjects)
-        for a in self.availableSubjects {
-            if let contains = a.datosAlumno?.keys.contains(account) {
-            //if (a.datosAlumno?.keys.contains(account))! {
-                if contains {
-                    self.registeredSubjects.append(a)
-                }
-            }
+    
+    func resetToDefault() {
+        self.lastMessages = ["Primer mensaje"]
+        self.loadSubjectState = "Consultando matrículas..."
+        self.registeringState = ""
+        self.actualUserAccount = ""
+        self.stackId = 0
+        self.registeringTxHash = ""
+        self.keys = [
+            "FTEL": [
+                "profesor":"",
+                "acronimo":"",
+                "nombre":"",
+                "curso":"",
+                "evaluaciones":[],
+                "datosAlumno":[],
+                "matriculas":[],
+                "getNota":[:],
+                "matriculasLength":"",
+                "evaluacionesLength":""
+            ],
+            "PROG": [
+                "profesor":"",
+                "acronimo":"",
+                "nombre":"",
+                "curso":"",
+                "evaluaciones":[],
+                "datosAlumno":[],
+                "matriculas":[],
+                "getNota":[:],
+                "matriculasLength":"",
+                "evaluacionesLength":""
+            ],
+            "CORE": [
+                "profesor":"",
+                "acronimo":"",
+                "nombre":"",
+                "curso":"",
+                "evaluaciones":[],
+                "datosAlumno":[],
+                "matriculas":[],
+                "getNota":[:],
+                "matriculasLength":"",
+                "evaluacionesLength":""
+            ],
+            "IWEB": [
+                "profesor":"",
+                "acronimo":"",
+                "nombre":"",
+                "curso":"",
+                "evaluaciones":[],
+                "datosAlumno":[],
+                "matriculas":[],
+                "getNota":[:],
+                "matriculasLength":"",
+                "evaluacionesLength":""
+            ]
+        ]
+        self.pending = [
+            "Any": -1,
+            "FTEL": [],
+            "PROG": [],
+            "CORE": [],
+            "IWEB": []
+        ]
+        self.availableSubjects = []
+        //añado subjects por defecto
+        for i in 0...(self.subjectsAcronyms.count-1) {
+            self.availableSubjects.append(Subject(acronimo: subjectsAcronyms[i], nombre: subjectNames[i]))
         }
-    }*/
-    
-    /*
-    func download() {
-        for i in 0...(subjectsAcronyms.count-1) {
-            //descargo info de asignatura
-            //llamo a su jsonToSubject
-            //añado la subject al array
-            availableSubjects.append(Subject(acronimo: subjectsAcronyms[i], nombre: subjectNames[i]))
-            if (i != 0 && i != 1) {
-                //Fuerzo que no tenga FTEL ni PROG
-                registeredSubjects.append(Subject(acronimo: subjectsAcronyms[i], nombre: subjectNames[i]))
-            }
-            //QUITAR ? DEL STRUCT SUBJECT
-        }
-    }*/
-    
-    func callWithParam(asignatura: String, atributo: String, param: String) {
-        self.pending["Any"] = 0
-        self.webView.evaluateJavaScript(self.script+"getKeyWithParam(\"\(asignatura)\", \"\(atributo)\", \"\(param)\")", completionHandler: nil)
     }
     
-    func call(asignatura: String, atributo: String) {
+    func callWithParam(asignatura: String, atributo: String, param: String, account: String) {
         self.pending["Any"] = 0
-        self.webView.evaluateJavaScript(self.script+"getKey(\"\(asignatura)\", \"\(atributo)\")", completionHandler: nil)
+        self.webView.evaluateJavaScript(self.script+"getKeyWithParam(\"\(asignatura)\", \"\(atributo)\", \"\(param)\", \"\(account)\")", completionHandler: nil)
     }
     
-    func matriculasLength(asignatura: String, account: String) {
+    func call(asignatura: String, atributo: String, account: String) {
         self.pending["Any"] = 0
-        print("me han llamado")
-        self.webView.evaluateJavaScript(self.script+"matriculasLength(\"\(asignatura)\", \"\(account)\")", completionHandler: nil)
+        self.webView.evaluateJavaScript(self.script+"getKey(\"\(asignatura)\", \"\(atributo)\", \"\(account)\")", completionHandler: nil)
     }
     
+    func setMatricula(asignatura: String, account: String, nombre: String, email: String) {
+        self.pending["Any"] = -1
+        self.registerCount = 0
+        self.registeringState = "Solicitando matriculación..."
+        self.webView.evaluateJavaScript(self.script+"setMatricula(\"\(asignatura)\", \"\(account)\", \"\(nombre)\", \"\(email)\")", completionHandler: nil)
+    }
+    //No usado
+    func getValue(asignatura: String, atributo: String, clave: String) {
+        self.webView.evaluateJavaScript(self.script+"getValue(\"\(asignatura)\", \"\(atributo)\", \"\(clave)\")", completionHandler: nil)
+    }
+    
+    func readTransactionTxHash(stackId: Int) {
+        self.webView.evaluateJavaScript(self.script+"readTransactionTxHash(\(stackId))", completionHandler: nil)
+    }
+    
+    func readTransactionState(txHash: String) {
+        self.webView.evaluateJavaScript(self.script+"readTransactionState(\"\(txHash)\")", completionHandler: nil)
+    }
 }
 
 extension SubjectModel: WKScriptMessageHandler, WKNavigationDelegate {
@@ -263,9 +320,9 @@ extension SubjectModel: WKScriptMessageHandler, WKNavigationDelegate {
         let body = message.body as! String
 
         if self.lastMessages.count == 1 && body.localizedStandardContains("Estado actualizado") {
-            //Drizzle configurado
+            //Primer mensaje de Estado actualizado. Solo ocurre una vez.
             self.lastMessages.append(body)
-            self.state = "Fin de la configuración."
+            self.setupState = "Fin de la configuración."
             print(body)
         } else if body.localizedStandardContains("Clave") {
             print(body)
@@ -274,20 +331,72 @@ extension SubjectModel: WKScriptMessageHandler, WKNavigationDelegate {
             let asignatura = String(array[1])
             let atributo = String(array[3])
             var clave = ""
+            var param = ""
             if body.localizedStandardContains("Parámetro/s") {
                 //Llamada con parámetros
+                param = String(array[5])
                 clave = String(array[7])
             } else {
                 //Llamada sin parámetros
                 clave = String(array[5])
             }
-            self.pending[asignatura] = self.lastMessages.count
+            var pending = (self.pending[asignatura] as? [Int])
+            pending?.append(self.lastMessages.count)
+            self.pending[asignatura] = pending
             self.lastMessages.append(body)
-            if self.keys![asignatura]![atributo] == "" {
-                //Aún no tengo la clave, la almaceno
-                self.keys![asignatura]![atributo] = clave
+            if atributo == "evaluaciones" || atributo == "matriculas" || atributo == "datosAlumno" {
+                //Almacenan arrays
+                let count = (self.keys![asignatura]![atributo] as! [String]).count
+                if count == Int(param)! {
+                    //Aún no tengo la clave, la almaceno
+                    var array = (self.keys![asignatura]![atributo] as! [String])
+                    array.insert(clave, at: (Int(param))!)
+                    self.keys![asignatura]![atributo] = array
+                } else {
+                    //Ya tengo la clave
+                    print("especiales")
+                    print(self.pending["Any"] as Any)
+                    print(self.pending[asignatura] as Any)
+                    let array = (self.keys![asignatura]![atributo] as! [String])
+                    print(array)
+                }
+            } else if atributo == "getNota" {
+                //Almacena diccionario
+                let account = self.actualUserAccount
+                if let count = (self.keys![asignatura]![atributo] as! [String:[String]])[account!]?.count {
+                    if count == Int(param)! {
+                        //Aún no tengo la clave, la almaceno
+                        var dict = (self.keys![asignatura]![atributo] as! [String:[String]])
+                        dict[account!]?.append(clave)
+                        self.keys![asignatura]![atributo] = dict
+                    } else {
+                        //Ya tengo la clave
+                        print("especiales")
+                        print(self.pending["Any"] as Any)
+                        print(self.pending[asignatura] as Any)
+                        let array = (self.keys![asignatura]![atributo] as! [String:[String]])
+                        print(array)
+                    }
+                } else {
+                    //Inicaliazo y añado
+                    var dict: Dictionary<String,[String]> = [:]
+                    dict[account!] = []
+                    dict[account!]?.insert(clave, at: Int(param)!)
+                    self.keys![asignatura]![atributo] = dict
+                }
             } else {
-                //Ya tengo la clave, por lo que no hago nada
+                //Almacenan strings
+                if (self.keys![asignatura]![atributo] as? String) == "" {
+                    //Aún no tengo la clave, la almaceno
+                    self.keys![asignatura]![atributo] = clave
+                } else {
+                    //Ya tengo la clave, por lo que no hago nada
+                    print("normales")
+                    print(self.pending["Any"] as Any)
+                    print(self.pending[asignatura] as Any)
+                    let array = self.keys![asignatura]![atributo]
+                    print(array as Any)
+                }
             }
         } else if body.localizedStandardContains("Datos") {
             print(body)
@@ -295,37 +404,269 @@ extension SubjectModel: WKScriptMessageHandler, WKNavigationDelegate {
             let array = body.split(separator: " ")
             let asignatura = String(array[1])
             let atributo = String(array[3])
-            var datos = String(array[5])
-            //let data = datos.data(using: .utf8)!
-            
-            if atributo == "matriculas" {
-                let index = self.subjectsAcronyms.firstIndex(of: asignatura)
-                datos.removeAll { char in
-                    if char == "\\" || char == "\"" || char == "[" || char == "]" {
-                        return true
+            let datos = String(array[5])
+            if datos == "undefined" {
+                //No quito el pending para que siga pidiendo
+            } else {
+                //Ya me ha llegado
+                var pending = self.pending[asignatura] as? [Int]
+                if pending?.count != 0 {
+                    let pendingIndex = (pending?.first)!
+                    let pendingMessage = self.lastMessages[pendingIndex]
+                    let arrayEsperado = pendingMessage.split(separator: " ")
+                    let atributoEsperado = String(arrayEsperado[3])
+                    if atributo == atributoEsperado {
+                        if atributo == "matriculasLength" {
+                            pending?.removeFirst()
+                            self.pending[asignatura] = pending
+                            let long = Int(datos)!
+                            let index = self.subjectsAcronyms.firstIndex(of: asignatura)
+                            self.availableSubjects[index!].matriculasLength = long
+                            if long != 0 {
+                                for i in 0...long-1 {
+                                    self.callWithParam(asignatura: asignatura, atributo: "matriculas", param: String(i), account: self.actualUserAccount)
+                                }
+                            } else {
+                                self.availableSubjects[index!].matriculasLength = long
+                                self.pending[asignatura] = []
+                                self.loadSubjectState = "Cargando evaluaciones..."
+                            }
+                        } else if atributo == "evaluacionesLength" {
+                            pending?.removeFirst()
+                            self.pending[asignatura] = pending
+                            let long = Int(datos)!
+                            let index = self.subjectsAcronyms.firstIndex(of: asignatura)
+                            self.availableSubjects[index!].evaluacionesLength = long
+                            if long != 0 {
+                                for i in 0...long-1 {
+                                    self.callWithParam(asignatura: asignatura, atributo: "evaluaciones", param: String(i), account: self.actualUserAccount)
+                                }
+                            } else {
+                                self.availableSubjects[index!].evaluacionesLength = long
+                                self.pending[asignatura] = []
+                                self.loadSubjectState = "Cargando calificaciones..."
+                            }
+                        } else if atributo == "matriculas" {
+                            //Habia parametro y es un número
+                            let index = self.subjectsAcronyms.firstIndex(of: asignatura)
+                            if self.availableSubjects[index!].matriculas == nil {
+                                //Inicializo y añado
+                                //print("He inicializado y añadido")
+                                self.availableSubjects[index!].matriculas = []
+                                self.availableSubjects[index!].matriculas?.append(datos)
+                                pending?.removeFirst()
+                                self.pending[asignatura] = pending
+                            } else {
+                                //Ya está creado, compruebo que no me haya llegado ya ese dato y añado
+                                let param = Int(arrayEsperado[5])
+                                if self.availableSubjects[index!].matriculas?.count == param && !(self.availableSubjects[index!].matriculas?.contains(datos))! {
+                                    //Aún no lo tenía, lo meto
+                                    self.availableSubjects[index!].matriculas?.append(datos)
+                                    pending?.removeFirst()
+                                    self.pending[asignatura] = pending
+                                    if pending?.count != 0 {
+                                        
+                                    } else {
+                                        //print("Ya no quedan más")
+                                    }
+                                    //Miro si era el último dato que me faltaba
+                                    if self.availableSubjects[index!].matriculas?.count == self.availableSubjects[index!].matriculasLength {
+                                        print("Fin de las matriculas")
+                                        print(self.availableSubjects[index!].matriculas!)
+                                        self.loadSubjectState = "Cargando evaluaciones..."
+                                    }
+                                } else {
+                                    //print("Ya me había llegado antes")
+                                    self.webView.evaluateJavaScript(self.script+"getValue(\"\(asignatura)\", \"\(atributo)\", \"\((self.keys[asignatura]![atributo] as! [String])[param!])\")", completionHandler: nil)
+                                }
+                            }
+                            if self.availableSubjects[index!].matriculas?.count == self.availableSubjects[index!].matriculasLength {
+                                print("Fin de las matriculas")
+                                print(self.availableSubjects[index!].matriculas!)
+                                self.loadSubjectState = "Cargando evaluaciones..."
+                            }
+                        } else if atributo == "evaluaciones" {
+                            //Había parámetro y son los datos de la evaluación consultada
+                            var nombre = datos
+                            var fecha = Int(array[6])
+                            var puntos = Int(array[7])
+                            if nombre == "Parcial" {
+                                //Sobrescribo con los valores reales
+                                nombre = datos+" "+String(array[6])
+                                fecha = Int(array[7])
+                                puntos = Int(array[8])
+                            }
+                            let evalObject = Subject.Evaluacion(nombre: nombre, fecha: fecha!, puntos: puntos!)
+                            let index = self.subjectsAcronyms.firstIndex(of: asignatura)
+                            if self.availableSubjects[index!].evaluaciones == nil {
+                                //Inicializo y añado
+                                self.availableSubjects[index!].evaluaciones = []
+                                self.availableSubjects[index!].evaluaciones?.append(evalObject)
+                                pending?.removeFirst()
+                                self.pending[asignatura] = pending
+                            } else {
+                                //Ya está creado, compruebo que no me haya llegado ya ese dato y añado
+                                let param = Int(arrayEsperado[5])
+                                if self.availableSubjects[index!].evaluaciones?.count == param && !(self.availableSubjects[index!].evaluaciones?.contains(evalObject))! {
+                                    //Aún no lo tenía, lo meto
+                                    self.availableSubjects[index!].evaluaciones?.append(evalObject)
+                                    pending?.removeFirst()
+                                    self.pending[asignatura] = pending
+                                    if pending?.count != 0 {
+                                    } else {
+                                        //print("Ya no quedan más")
+                                    }
+                                    //Miro si era el último dato que me faltaba
+                                    if self.availableSubjects[index!].evaluaciones?.count == self.availableSubjects[index!].evaluacionesLength {
+                                        print("Fin de las evaluaciones")
+                                        print(self.availableSubjects[index!].evaluaciones!)
+                                        self.loadSubjectState = "Cargando calificaciones..."
+                                    }
+                                } else {
+                                    //print("Ya me había llegado antes")
+                                    self.webView.evaluateJavaScript(self.script+"getValue(\"\(asignatura)\", \"\(atributo)\", \"\((self.keys[asignatura]![atributo] as! [String])[param!])\")", completionHandler: nil)
+                                }
+                            }
+                        } else if atributo == "getNota" {
+                            //Había parámetro y son los datos de la evaluación consultada
+                            let tipo = Int(datos)
+                            let calificacion = Int(array[6])
+                            var tipoNota = Subject.TipoNota.NP
+                            switch tipo {
+                            case 0:
+                                tipoNota = Subject.TipoNota.NP
+                            case 1:
+                                tipoNota = Subject.TipoNota.Normal
+                            case 2:
+                                tipoNota = Subject.TipoNota.MH
+                            default:
+                                tipoNota = Subject.TipoNota.NP
+                            }
+                            let notaObject = Subject.Nota(tipo: tipoNota, calificacion: calificacion!)
+                            let index = self.subjectsAcronyms.firstIndex(of: asignatura)
+                            let account = self.actualUserAccount
+                            let evalIndex = Int(arrayEsperado[5])
+                            
+                            if self.availableSubjects[index!].calificaciones == nil {
+                                //No hay notas de nadie
+                                //Inicializo y añado
+                                self.availableSubjects[index!].calificaciones = [:]
+                                self.availableSubjects[index!].calificaciones![account!] = [evalIndex!:notaObject]
+                                pending?.removeFirst()
+                                self.pending[asignatura] = pending
+                            } else {
+                                //Ya hay algo pero puede que de otro alumno, compruebo
+                                if (self.availableSubjects[index!].calificaciones?.keys.contains(account!))! {
+                                    //Hay alguna nota ya del alumno
+                                    //Compruebo que no me haya llegado la misma
+                                    let evalEsperada = Int(arrayEsperado[5])
+                                    var evalLlegada = -1
+                                    for e in self.availableSubjects[index!].calificaciones![account!]! {
+                                        if e.value == notaObject {
+                                            evalLlegada = e.key
+                                        }
+                                    }
+                                    if self.availableSubjects[index!].calificaciones![account!]!.keys.contains(evalLlegada) {
+                                        //Ya tengo dato para esa evaluación
+                                        print("Me ha llegado repetido")
+                                        self.webView.evaluateJavaScript(self.script+"getValue(\"\(asignatura)\", \"\(atributo)\", \"\(String(describing: (self.keys[asignatura]![atributo] as! [String:[String]])[account!]![evalEsperada!]))\")", completionHandler: nil)
+                                    } else {
+                                        //No tengo dato para esa evaluación, la guardo
+                                        self.availableSubjects[index!].calificaciones![account!]![evalIndex!] = notaObject
+                                        pending?.removeFirst()
+                                        self.pending[asignatura] = pending
+                                    }
+                                } else {
+                                    //Solo hay notas de otros alumnos. Inicializo y añado
+                                    self.availableSubjects[index!].calificaciones![account!] = [:]
+                                    self.availableSubjects[index!].calificaciones![account!]![evalIndex!] = notaObject
+                                    pending?.removeFirst()
+                                    self.pending[asignatura] = pending
+                                }
+                            }
+                            if self.availableSubjects[index!].evaluacionesLength == self.availableSubjects[index!].calificaciones?[account!]!.keys.count {
+                                print("Fin de las notas")
+                                print(self.availableSubjects[index!].calificaciones as Any)
+                                self.loadSubjectState = "Fin."
+                            }
+                        } else {
+                            print("No sé de qué me hablas bro")
+                        }
+                        if (self.pending["FTEL"] as! [Int]).count == 0 && (self.pending["PROG"] as! [Int]).count == 0 && (self.pending["CORE"] as! [Int]).count == 0 && (self.pending["IWEB"] as! [Int]).count == 0 {
+                            self.pending["Any"] = -1
+                        }
                     }
-                    return false
+                } else {
+                    print("No hay mensajes pendientes")
+                    if atributo ==  "matriculasLength" {
+                        let long = Int(datos)!
+                        let index = self.subjectsAcronyms.firstIndex(of: asignatura)
+                        self.availableSubjects[index!].matriculasLength = long
+                        self.pending[asignatura] = []
+                        self.loadSubjectState = "Cargando evaluaciones..."
+                    } else if atributo == "evaluacionesLength" {
+                        let long = Int(datos)!
+                        let index = self.subjectsAcronyms.firstIndex(of: asignatura)
+                        self.availableSubjects[index!].evaluacionesLength = long
+                        self.pending[asignatura] = []
+                        self.loadSubjectState = "Cargando calificaciones..."
+                    }
+                    if (self.pending["FTEL"] as! [Int]).count == 0 && (self.pending["PROG"] as! [Int]).count == 0 && (self.pending["CORE"] as! [Int]).count == 0 && (self.pending["IWEB"] as! [Int]).count == 0 {
+                        self.pending["Any"] = -1
+                    }
                 }
-                let array = datos.components(separatedBy: ",")
-                self.availableSubjects[index!].matriculas = array
-                self.subjectLoaded = true
-                self.pending[asignatura] = -1
             }
-        } else if body.localizedStandardContains("Estado actualizado") && self.pending["Any"] == 0 {
+        } else if body.localizedStandardContains("Estado actualizado") && (self.pending["Any"] as! Int) == 0 {
             //Tengo operaciones pendientes por terminar
             self.lastMessages.append(body)
-            print("-"+body)
+            print(body)
             for asignatura in self.subjectsAcronyms {
-                let index = self.pending[asignatura]
-                if index != -1 {
-                    //Esa asignatura tiene pendiente obtener el valor
-                    //print("viendo "+asignatura+" con index "+String(describing: index))
-                    let array = self.lastMessages[index!].split(separator: " ")
-                    let asignatura = String(array[1])
-                    let atributo = String(array[3])
-                    self.pending[asignatura] = -1
-                    self.webView.evaluateJavaScript(self.script+"getValue(\"\(asignatura)\", \"\(atributo)\", \"\(self.keys[asignatura]![atributo]!)\")", completionHandler: nil)
+                let pending = self.pending[asignatura] as! [Int]
+                if pending.count != 0 {
+                    let index = pending.first
+                    if index != -1 {
+                        //Esa asignatura tiene pendiente obtener el valor
+                        //print("viendo "+asignatura+" con index "+String(describing: index))
+                        let array = self.lastMessages[index!].split(separator: " ")
+                        let asignatura = String(array[1])
+                        let atributo = String(array[3])
+                        if atributo == "evaluaciones" || atributo == "matriculas" || atributo == "datosAlumno" {
+                            //Almacenan arrays
+                            let param = String(array[5])
+                            self.webView.evaluateJavaScript(self.script+"getValue(\"\(asignatura)\", \"\(atributo)\", \"\((self.keys[asignatura]![atributo] as! [String])[Int(param)!])\")", completionHandler: nil)
+                        } else if atributo == "getNota" {
+                            //Almacena diccionario
+                            let param = Int(array[5])!
+                            self.webView.evaluateJavaScript(self.script+"getValue(\"\(asignatura)\", \"\(atributo)\", \"\(String(describing: (self.keys[asignatura]![atributo] as! [String:[String]])[self.actualUserAccount!]![param]))\")", completionHandler: nil)
+                        } else {
+                            //Almacenan strings
+                            self.webView.evaluateJavaScript(self.script+"getValue(\"\(asignatura)\", \"\(atributo)\", \"\(self.keys[asignatura]![atributo]!)\")", completionHandler: nil)
+                        }
+                    }
                 }
+            }
+        } else if body.localizedStandardContains("stackId") {
+            if self.stackId == 0 {
+                self.stackId = Int(body.split(separator: " ")[5])
+                print("StackId almacenado: \(String(describing: self.stackId))")
+                self.readTransactionTxHash(stackId: self.stackId)
+            }
+        } else if body.localizedStandardContains("txHash") {
+            if body.localizedStandardContains("Aún no está") {
+                self.readTransactionTxHash(stackId: self.stackId)
+            } else if body.localizedStandardContains("Transacción con") {
+                self.registeringTxHash = String(body.split(separator: " ")[3])
+            }
+        } else if body.localizedStandardContains("Transacción actualizada") {
+            let state = String(body.split(separator: " ")[2])
+            if state == "success" {
+                self.registeringState = "Fin."
+                self.stackId = 0
+                self.registeringTxHash = ""
+            }
+        } else if body.localizedStandardContains("Estado actualizado") && self.registeringState == "Solicitando matriculación..." {
+            if self.registeringTxHash != "" {
+                self.readTransactionState(txHash: self.registeringTxHash)
             }
         } else if body.localizedStandardContains("Estado actualizado") {
             print("--"+body)
@@ -337,110 +678,8 @@ extension SubjectModel: WKScriptMessageHandler, WKNavigationDelegate {
             print(body)
             self.lastMessages.append(body)
         }
-        /*
-        if body.localizedStandardContains("Estado actualizado") && self.needRequest {
-            self.needRequest = false
-            self.webView.evaluateJavaScript(self.script+"getKey(\"FTEL\", \"matriculas\")", completionHandler: nil)
-            self.webView.evaluateJavaScript(self.script+"getKey(\"PROG\", \"matriculas\")", completionHandler: nil)
-            self.webView.evaluateJavaScript(self.script+"getKey(\"CORE\", \"matriculas\")", completionHandler: nil)
-            self.webView.evaluateJavaScript(self.script+"getKey(\"IWEB\", \"matriculas\")", completionHandler: nil)
-            self.lastMessage = body
-        } else if body.localizedStandardContains("Clave") {
-            let array = body.split(separator: " ")
-            let asignatura = String(array[1])
-            let atributo = String(array[3])
-            let clave = String(array[5])
-            self.keys![asignatura]![atributo] = clave
-            self.lastMessage = body
-        } else if body.localizedStandardContains("Estado actualizado") {
-            print("caso espesial")
-            self.lastMessage = body
-            if self.keys["FTEL"]!["matriculas"] != "" {
-                self.webView.evaluateJavaScript(self.script+"getValue(\"FTEL\", \"matriculas\", "+self.keys["FTEL"]!["matriculas"]!+")", completionHandler: nil)
-            }
-            if self.keys["PROG"]!["matriculas"] != "" {
-                self.webView.evaluateJavaScript(self.script+"getValue(\"PROG\", \"matriculas\", "+self.keys["PROG"]!["matriculas"]!+")", completionHandler: nil)
-            }
-            if self.keys["CORE"]!["matriculas"] != "" {
-                self.webView.evaluateJavaScript(self.script+"getValue(\"CORE\", \"matriculas\", "+self.keys["CORE"]!["matriculas"]!+")", completionHandler: nil)
-            }
-            if self.keys["IWEB"]!["matriculas"] != "" {
-                self.webView.evaluateJavaScript(self.script+"getValue(\"IWEB\", \"matriculas\", "+self.keys["IWEB"]!["matriculas"]!+")", completionHandler: nil)
-            }
-        } else {
-            self.lastMessage = body
-        }
-        */
-        /*
-        let body = message.body as! String
-        if body.localizedStandardContains("Estado actualizado") && self.lastMessage == "Estado actualizado" {
-            // No imprimo mensajes duplicados. Ya he tomado medidas en el primer mensaje.
-        } else if (body.localizedStandardContains("clave") && self.valueKey.hasPrefix("0x")) {
-            // Me han pasado la clave del atributo valor, pero ya la tengo guardada.
-        } else if (body.localizedStandardContains("clave") && !self.valueKey.hasPrefix("0x")) {
-            // Me han pasado la clave del atributo valor, la guardo porque aún no la tengo.
-            print(body)
-            self.valueKey = "\(String(describing: body.split(separator: " ").last!))"
-        } else if (body.localizedStandardContains("valor") && String(body.last!) == self.label.text) {
-            // Me llega el mismo valor, informo pero no lo actualizo.
-            print("Mismo valor, aún no ha cambiado")
-        } else if (body.localizedStandardContains("Estado actualizado") && !self.needRequest && self.valueKey.hasPrefix("0x")){
-            // El estado se ha actualizado y ya he hecho cacheCall(). Ya tengo la clave almacenada. Hago getValue()
-            print(body)
-            let key: String! = self.valueKey
-            self.webView.evaluateJavaScript(self.script+"getValue(\"\(key!)\")", completionHandler: nil)
-        } else if (body.localizedStandardContains("Estado actualizado")){
-            // El estado se ha actualizado y aun no he hecho cacheCall(). Pido la clave
-            print(body)
-            self.needRequest = false
-            self.webView.evaluateJavaScript(self.script+"getKey()", completionHandler: nil)
-        } else if (body.localizedStandardContains("valor")) {
-            // Me han pasado el valor. A partir de aqui, cualquier actualizacion necesita hacer cacheCall() de nuevo
-            print(body)
-            self.label.text = "\(String(describing: body.split(separator: " ").last!))"
-            self.needRequest = true
-        } else {
-            print(body)
-        }
-        self.lastMessage = body
-*/
-        
         
         // Para mandar varios parametros y recogerlos
         // https://medium.com/john-lewis-software-engineering/ios-wkwebview-communication-using-javascript-and-swift-ee077e0127eb
     }
-
 }
-
-
-/* LLAMADA CON PARAMETROS
- do {
-     self.lastMessages.append(body)
-     let array = body.split(separator: " ")
-     let asignatura = String(array[1])
-     let atributo = String(array[3])
-     let datos = String(array[5])
-     let data = datos.data(using: .utf8)!
-     if atributo == "datosAlumno" {
-         for i in 0...self.availableSubjects.count-1 {
-             if self.availableSubjects[i].acronimo == asignatura {
-                 //----------------SE QUEDA PARADO AQUI
-                 var updated = self.availableSubjects[i]
-                 //print("hola")
-                 let dict = try JSONDecoder().decode(DatosAlumnoResponse.self, from: data)
-                 let datosAlumno = Subject.DatosAlumno(nombre: dict.value["nombre"]!, email: dict.value["email"]!, password: dict.value["password"]!)
-                 let param = dict.args["0"]
-                 updated.datosAlumno? = [:]
-                 updated.datosAlumno = [param!:datosAlumno]
-                 //print(updated)
-                 self.availableSubjects[i] = updated
-                 //print(self.availableSubjects)
-             }
-         }
-     }
- } catch {
-     print("EEEERROR: \(error)")
- }
- 
- 
- */

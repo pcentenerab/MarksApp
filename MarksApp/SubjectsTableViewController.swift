@@ -15,11 +15,13 @@ class SubjectsTableViewController: UITableViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Uncomment the following line to preserve selection between presentations
-        // self.clearsSelectionOnViewWillAppear = false
-
-        // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-        // self.navigationItem.rightBarButtonItem = self.editButtonItem
+        self.subjectModel.pending = [
+            "Any": -1,
+            "FTEL": [],
+            "PROG": [],
+            "CORE": [],
+            "IWEB": []
+        ]
     }
 
     // MARK: - Table view data source
@@ -40,24 +42,30 @@ class SubjectsTableViewController: UITableViewController {
         return cell
     }
     
-    @IBSegueAction func showSubject(_ coder: NSCoder) -> SubjectViewController? {
-        let svc = SubjectViewController(coder: coder)
+    @IBSegueAction func showSubject(_ coder: NSCoder) -> LoadingViewController? {
+        let lvc = LoadingViewController(coder: coder)
         let row = tableView.indexPathForSelectedRow!.row
-        svc?.subject = subjectModel.availableSubjects[row]
-        svc?.userAccount = self.userAccount
-        return svc
+        lvc?.subject = subjectModel.availableSubjects[row]
+        lvc?.userAccount = self.userAccount
+        return lvc
     }
 
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         let backItem = UIBarButtonItem()
-        backItem.title = "Volver"
-        navigationItem.backBarButtonItem = backItem // This will show in the next view controller being pushed
+        backItem.title = "Cancelar"
+        navigationItem.backBarButtonItem = backItem
     }
     
-    //@IBAction func unwind(_ segue: UIStoryboardSegue) {
-        //if let sourcevc = segue.source as? SubjectViewController {
-            // DIRIA QUE NO HACE FALTA self.subjectModel = sourcevc.subjectModel
-          //  tableView.reloadData()
-        //}
-    //}
+    @IBAction func unwind(_ segue: UIStoryboardSegue) {
+
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+
+        if self.isMovingFromParent {
+            print("Cierro sesión")
+            self.subjectModel.resetToDefault()
+        }
+    }
 }

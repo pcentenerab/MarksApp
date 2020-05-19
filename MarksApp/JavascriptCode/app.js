@@ -30,11 +30,16 @@ function setup() {
     });
 }
 
-function getKeyWithParam(asignatura, atributo, param) {
+function getKeyWithParam(asignatura, atributo, param, account) {
     if (globalObject.drizzleState.drizzleStatus.initialized) {
         try {
-            let key = globalObject.drizzle.contracts[asignatura].methods[atributo].cacheCall(param);
-            webkit.messageHandlers.didFetchValue.postMessage("Asignatura: "+asignatura+" Atributo: "+atributo+" Parámetro/s: "+param+" Clave: "+key);
+            if (atributo == "getNota") {
+                let key = globalObject.drizzle.contracts[asignatura].methods[atributo].cacheCall(parseInt(param, 10), {from: account});
+                webkit.messageHandlers.didFetchValue.postMessage("Asignatura: "+asignatura+" Atributo: "+atributo+" Parámetro/s: "+param+" Clave: "+key);
+            } else {
+                let key = globalObject.drizzle.contracts[asignatura].methods[atributo].cacheCall(param, {from: account});
+                webkit.messageHandlers.didFetchValue.postMessage("Asignatura: "+asignatura+" Atributo: "+atributo+" Parámetro/s: "+param+" Clave: "+key);
+            }        
         } catch (error) {
             webkit.messageHandlers.didFetchValue.postMessage(""+error);
         }
@@ -44,10 +49,10 @@ function getKeyWithParam(asignatura, atributo, param) {
     }
 }
 
-function getKey(asignatura, atributo) {
+function getKey(asignatura, atributo, account) {
     if (globalObject.drizzleState.drizzleStatus.initialized) {
         try {
-            let key = globalObject.drizzle.contracts[asignatura].methods[atributo].cacheCall();
+            let key = globalObject.drizzle.contracts[asignatura].methods[atributo].cacheCall({from: account});
             webkit.messageHandlers.didFetchValue.postMessage("Asignatura: "+asignatura+" Atributo: "+atributo+" Clave: "+key);
         } catch (error) {
             webkit.messageHandlers.didFetchValue.postMessage(""+error);
@@ -65,6 +70,26 @@ function getValue(asignatura, atributo, key) {
             if (atributo === "datosAlumno") {
                 let object = globalObject.drizzleState.contracts[asignatura][atributo][key];
                 datos = JSON.stringify(object);
+            } else if (atributo == "matriculasLength" || atributo == "evaluacionesLength" || atributo == "matriculas") {
+                if (globalObject.drizzleState.contracts[asignatura][atributo].hasOwnProperty(key)) {
+                    datos = globalObject.drizzleState.contracts[asignatura][atributo][key].value;
+                } else {
+                    datos = "undefined"
+                }
+            } else if (atributo == "evaluaciones") {
+                if (globalObject.drizzleState.contracts[asignatura][atributo].hasOwnProperty(key)) {
+                    let object = globalObject.drizzleState.contracts[asignatura][atributo][key].value
+                    datos = object.nombre+" "+object.fecha+" "+object.puntos;
+                } else {
+                    datos = "undefined undefined undefined"
+                }
+            } else if (atributo == "getNota") {
+                if (globalObject.drizzleState.contracts[asignatura][atributo].hasOwnProperty(key)) {
+                    let object = globalObject.drizzleState.contracts[asignatura][atributo][key].value
+                    datos = object.tipo+" "+object.calificacion;
+                } else {
+                    datos = "undefined undefined"
+                }
             } else {
                 datos = globalObject.drizzleState.contracts[asignatura][atributo][key];
             }
@@ -77,37 +102,14 @@ function getValue(asignatura, atributo, key) {
         webkit.messageHandlers.didFetchValue.postMessage("No inicializado. Drizzle state: "+string);
     }
 }
-/*
-function setMatricula(asignatura, senderIndex, nombre, email) {
-    if (globalObject.drizzleState.drizzleStatus.initialized) {
-        const stackId = globalObject.drizzle.contracts[asignatura].methods.setEvaluacion.cacheSend(nombre, email, {from: globalObject.drizzleState.accounts[senderIndex]});
-        if (globalObject.drizzleState.transactionStack[stackId]) {
-            const txHash = globalObject.drizzleState.transactionStack[stackId]
-            webkit.messageHandlers.didFetchValue.postMessage("Asignatura: "+asignatura+" Método: setMatricula; TxHash: "+globalObject.drizzleState.transactions[txHash].status)
-        }
-    } else {
-        let string = JSON.stringify(globalObject.drizzleState)
-        webkit.messageHandlers.didFetchValue.postMessage("No inicializado. Drizzle state: "+string);
-    }
-}
-*/
 
-function matriculasLength(asignatura, account) {
+function setMatricula(asignatura, account, nombre, email) {
     if (globalObject.drizzleState.drizzleStatus.initialized) {
         try {
-            webkit.messageHandlers.didFetchValue.postMessage("hola");
-            const stackId = globalObject.drizzle.contracts.FTEL.methods.matriculasLength.cacheSend({from: globalObject.drizzleState.accounts[0]});
-            webkit.messageHandlers.didFetchValue.postMessage(""+stackId);
-            let string = JSON.stringify(globalObject.drizzleState);
-            webkit.messageHandlers.didFetchValue.postMessage("Drizzle state: "+string);
-            // Use the dataKey to display the transaction status.
-            if (globalObject.drizzleState.transactionStack[stackId]) {
-                const txHash = globalObject.drizzleState.transactionStack[stackId]
-                var state = globalObject.drizzleState.transactions[txHash].status
-                webkit.messageHandlers.didFetchValue.postMessage("Asignatura: "+asignatura+" Método: matriculasLength Estado: "+state)
-            }
-        }catch {
-            webkit.messageHandlers.didFetchValue.postMessage("ERRORSITO: "+error)
+            const stackId = globalObject.drizzle.contracts[asignatura].methods.setMatricula.cacheSend(nombre, email, {from: account, gas: 200000, gasPrice: 20000000000});
+            webkit.messageHandlers.didFetchValue.postMessage("Transacción de matriculación enviada. stackId: "+stackId);
+        } catch (error) {
+            webkit.messageHandlers.didFetchValue.postMessage("Errrroorrrrrr: "+error);
         }
     } else {
         let string = JSON.stringify(globalObject.drizzleState)
@@ -115,8 +117,45 @@ function matriculasLength(asignatura, account) {
     }
 }
 
-// LAS DEMAS FUNCIONES
-//matriculas[...]
-//evalaucionesLength
-//evaluaciones[...]
-//getNota
+function readTransactionTxHash(stackId) {
+    if (globalObject.drizzleState.drizzleStatus.initialized) {
+        try {
+            if (globalObject.drizzleState.transactionStack[stackId].includes("TEMP")) {
+                //Aún no está el txHash bueno
+                webkit.messageHandlers.didFetchValue.postMessage("Aún no está el txHash");
+            } else {
+                //Ya está el txHash bueno
+                webkit.messageHandlers.didFetchValue.postMessage("Transacción con txHash: "+globalObject.drizzleState.transactionStack[stackId]);
+            }
+        } catch (error) {
+            webkit.messageHandlers.didFetchValue.postMessage("Errrroorrrrrr: "+error);
+        }
+    } else {
+        let string = JSON.stringify(globalObject.drizzleState)
+        webkit.messageHandlers.didFetchValue.postMessage("No inicializado. Drizzle state: "+string);
+    }
+}
+
+function readTransactionState(txHash) {
+    if (globalObject.drizzleState.drizzleStatus.initialized) {
+        try {
+            if (globalObject.drizzleState.transactions.hasOwnProperty(txHash)) {
+                if (globalObject.drizzleState.transactions[txHash].status == "error") {
+                    let string = JSON.stringify(globalObject.drizzleState.transactions[txHash]);
+                    webkit.messageHandlers.didFetchValue.postMessage("Error en la transacción: "+string);
+                } else {
+                    webkit.messageHandlers.didFetchValue.postMessage("Transacción actualizada: "+globalObject.drizzleState.transactions[txHash].status);
+                }
+            } else {
+                webkit.messageHandlers.didFetchValue.postMessage("La transacción aún no está en el estado de Drizzle")
+                let string = JSON.stringify(globalObject.drizzleState.transactions)
+                webkit.messageHandlers.didFetchValue.postMessage("Drizzle transactions: "+string);
+            }
+        } catch (error) {
+            webkit.messageHandlers.didFetchValue.postMessage("Errrroorrrrrr: "+error);
+        }
+    } else {
+        let string = JSON.stringify(globalObject.drizzleState)
+        webkit.messageHandlers.didFetchValue.postMessage("No inicializado. Drizzle state: "+string);
+    }
+}

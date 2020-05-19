@@ -2,7 +2,7 @@
 //  FirstViewController.swift
 //  MarksApp
 //
-//  Created by Belén on 17/05/2020.
+//  Created by Patricia on 17/05/2020.
 //  Copyright © 2020 IWEB. All rights reserved.
 //
 
@@ -19,8 +19,8 @@ class FirstViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         Timer.scheduledTimer(withTimeInterval: 0.4, repeats: true) { timer in
-            self.stateLabel.text = self.subjectModel.state
-            if (self.subjectModel.state == "Fin de la configuración.") {
+            self.stateLabel.text = self.subjectModel.setupState
+            if (self.subjectModel.setupState == "Fin de la configuración.") {
                 timer.invalidate()
                 self.performSegue(withIdentifier: "Start App", sender: self)
             }

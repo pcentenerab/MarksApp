@@ -7,15 +7,12 @@
 //
 
 import UIKit
-import WebKit
 
 class LoginViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSource {
 
     @IBOutlet weak var addressPickerView: UIPickerView!
     @IBOutlet weak var activityIndicatorView: UIActivityIndicatorView!
     let subjectModel = (UIApplication.shared.delegate as! AppDelegate).subjectModel
-    var webView: WKWebView!
-    
     var accounts = [
         "0xc8b3c04f40aDBb94FeD606B185fcBDD87180Fc8F",
         "0xF511e9DB20963cA9CCd7C3b2464A5CCF53B6f64d",
@@ -57,12 +54,13 @@ class LoginViewController: UIViewController, UIPickerViewDelegate, UIPickerViewD
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         let backItem = UIBarButtonItem()
         backItem.title = "Cerrar sesión"
-        navigationItem.backBarButtonItem = backItem // This will show in the next view controller being pushed
+        navigationItem.backBarButtonItem = backItem
     }
     
     @IBSegueAction func login(_ coder: NSCoder) -> SubjectsTableViewController? {
         let stvc = SubjectsTableViewController(coder: coder)
         stvc?.userAccount = accounts[self.addressPickerView.selectedRow(inComponent: 0)]
+        self.subjectModel.actualUserAccount = stvc?.userAccount
         return stvc
     }
 }

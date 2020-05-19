@@ -7,13 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		FA1200972472B8D100CC2119 /* LoadingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA1200962472B8D100CC2119 /* LoadingViewController.swift */; };
 		FA4D339024715E710020BAF3 /* FirstViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA4D338F24715E710020BAF3 /* FirstViewController.swift */; };
 		FA4D3392247196870020BAF3 /* MarkCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA4D3391247196870020BAF3 /* MarkCell.swift */; };
 		FAB8E3E1246D5A09003F391D /* SubjectsTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAB8E3E0246D5A09003F391D /* SubjectsTableViewController.swift */; };
 		FAB8E3E3246D5F5B003F391D /* SubjectModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAB8E3E2246D5F5B003F391D /* SubjectModel.swift */; };
 		FAB8E3E6246D8060003F391D /* SubjectCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAB8E3E5246D8060003F391D /* SubjectCell.swift */; };
 		FAB8E3E8246D892F003F391D /* SubjectViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAB8E3E7246D892F003F391D /* SubjectViewController.swift */; };
-		FAB8E3EA246D983E003F391D /* RegistrationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAB8E3E9246D983E003F391D /* RegistrationViewController.swift */; };
 		FAC907BB246D3E37008EB88D /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAC907BA246D3E37008EB88D /* AppDelegate.swift */; };
 		FAC907BD246D3E37008EB88D /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAC907BC246D3E37008EB88D /* SceneDelegate.swift */; };
 		FAC907BF246D3E37008EB88D /* LoginViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAC907BE246D3E37008EB88D /* LoginViewController.swift */; };
@@ -24,13 +24,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		FA1200962472B8D100CC2119 /* LoadingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingViewController.swift; sourceTree = "<group>"; };
 		FA4D338F24715E710020BAF3 /* FirstViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirstViewController.swift; sourceTree = "<group>"; };
 		FA4D3391247196870020BAF3 /* MarkCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkCell.swift; sourceTree = "<group>"; };
 		FAB8E3E0246D5A09003F391D /* SubjectsTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubjectsTableViewController.swift; sourceTree = "<group>"; };
 		FAB8E3E2246D5F5B003F391D /* SubjectModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubjectModel.swift; sourceTree = "<group>"; };
 		FAB8E3E5246D8060003F391D /* SubjectCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubjectCell.swift; sourceTree = "<group>"; };
 		FAB8E3E7246D892F003F391D /* SubjectViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubjectViewController.swift; sourceTree = "<group>"; };
-		FAB8E3E9246D983E003F391D /* RegistrationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationViewController.swift; sourceTree = "<group>"; };
 		FAC907B7246D3E37008EB88D /* MarksApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MarksApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FAC907BA246D3E37008EB88D /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		FAC907BC246D3E37008EB88D /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -79,9 +79,9 @@
 				FAC907BE246D3E37008EB88D /* LoginViewController.swift */,
 				FAB8E3E0246D5A09003F391D /* SubjectsTableViewController.swift */,
 				FAB8E3E5246D8060003F391D /* SubjectCell.swift */,
+				FA1200962472B8D100CC2119 /* LoadingViewController.swift */,
 				FAB8E3E7246D892F003F391D /* SubjectViewController.swift */,
 				FA4D3391247196870020BAF3 /* MarkCell.swift */,
-				FAB8E3E9246D983E003F391D /* RegistrationViewController.swift */,
 				FAC907C0246D3E37008EB88D /* Main.storyboard */,
 				FAF2CA8D246E8F08006D9F3C /* JavascriptCode */,
 				FAC907C3246D3E39008EB88D /* Assets.xcassets */,
@@ -166,11 +166,11 @@
 				FA4D339024715E710020BAF3 /* FirstViewController.swift in Sources */,
 				FAB8E3E6246D8060003F391D /* SubjectCell.swift in Sources */,
 				FAC907BF246D3E37008EB88D /* LoginViewController.swift in Sources */,
-				FAB8E3EA246D983E003F391D /* RegistrationViewController.swift in Sources */,
 				FAC907BB246D3E37008EB88D /* AppDelegate.swift in Sources */,
 				FAB8E3E1246D5A09003F391D /* SubjectsTableViewController.swift in Sources */,
 				FAB8E3E8246D892F003F391D /* SubjectViewController.swift in Sources */,
 				FAC907BD246D3E37008EB88D /* SceneDelegate.swift in Sources */,
+				FA1200972472B8D100CC2119 /* LoadingViewController.swift in Sources */,
 				FA4D3392247196870020BAF3 /* MarkCell.swift in Sources */,
 				FAB8E3E3246D5F5B003F391D /* SubjectModel.swift in Sources */,
 			);
