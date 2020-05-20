@@ -354,20 +354,20 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <activityIndicatorView opaque="NO" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" animating="YES" style="large" translatesAutoresizingMaskIntoConstraints="NO" id="5Xe-o7-exx">
-                                <rect key="frame" x="171" y="364" width="72" height="65"/>
+                                <rect key="frame" x="171" y="363" width="72" height="65"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="65" id="VS9-bl-z54"/>
                                 </constraints>
                                 <color key="color" red="0.175073117" green="0.26053506139999999" blue="0.37583649159999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                             </activityIndicatorView>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="MarksApp" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="F5u-ce-6An">
-                                <rect key="frame" x="79" y="199" width="256" height="67"/>
-                                <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="56"/>
+                                <rect key="frame" x="79" y="199" width="256" height="66"/>
+                                <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="55"/>
                                 <color key="textColor" red="0.13630059359999999" green="0.2683038116" blue="0.36719334129999998" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Estado" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="suh-p4-1GF">
-                                <rect key="frame" x="67" y="476" width="280" height="50"/>
+                                <rect key="frame" x="67" y="475" width="280" height="50"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="50" id="fd9-wb-PXk"/>
                                 </constraints>
@@ -376,7 +376,7 @@
                                 <nil key="highlightedColor"/>
                             </label>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="9cN-ty-CJT">
-                                <rect key="frame" x="124" y="608" width="166" height="58"/>
+                                <rect key="frame" x="124" y="607" width="166" height="59"/>
                                 <color key="backgroundColor" red="0.13630059359999999" green="0.2683038116" blue="0.36719334129999998" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="23"/>
                                 <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>

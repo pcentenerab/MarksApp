@@ -80,14 +80,20 @@ class SubjectViewController: UIViewController, UITableViewDelegate, UITableViewD
         let evaluacion = evaluaciones![indexPath.row]!
         if self.isRegistered {
             let calificaciones = self.subject.calificaciones
-            if calificaciones?[self.userAccount]?[indexPath.row]?.tipo != Subject.TipoNota.NP {
-                //Ya tengo nota de esa prueba
-                let nota = calificaciones?[self.userAccount]?[indexPath.row]
-                let alert = UIAlertController(title: evaluacion.nombre, message: "El peso de esta prueba es del \(evaluacion.puntos)%. Tu nota es \(String(describing: nota!.calificacion)) (\(String(describing: nota!.tipo.rawValue))).", preferredStyle: .alert)
-                alert.addAction(UIAlertAction(title: "Ok", style: .default, handler: nil))
-                self.present(alert, animated: true)
+            if calificaciones?.count != nil {
+                if calificaciones?[self.userAccount]?[indexPath.row]?.tipo != Subject.TipoNota.NP {
+                    //Ya tengo nota de esa prueba
+                    let nota = calificaciones?[self.userAccount]?[indexPath.row]
+                    let alert = UIAlertController(title: evaluacion.nombre, message: "El peso de esta prueba es del \(evaluacion.puntos)%. Tu nota es \(String(describing: nota!.calificacion)) (\(String(describing: nota!.tipo.rawValue))).", preferredStyle: .alert)
+                    alert.addAction(UIAlertAction(title: "Ok", style: .default, handler: nil))
+                    self.present(alert, animated: true)
+                } else {
+                    //Aún no hay nota de esa prueba
+                    let alert = UIAlertController(title: evaluacion.nombre, message: "El peso de prueba parte es del \(evaluacion.puntos)%. Aún no has realizado la prueba.", preferredStyle: .alert)
+                    alert.addAction(UIAlertAction(title: "Ok", style: .default, handler: nil))
+                    self.present(alert, animated: true)
+                }
             } else {
-                //Aún no hay nota de esa prueba
                 let alert = UIAlertController(title: evaluacion.nombre, message: "El peso de prueba parte es del \(evaluacion.puntos)%. Aún no has realizado la prueba.", preferredStyle: .alert)
                 alert.addAction(UIAlertAction(title: "Ok", style: .default, handler: nil))
                 self.present(alert, animated: true)
@@ -150,6 +156,7 @@ class SubjectViewController: UIViewController, UITableViewDelegate, UITableViewD
             self.subjectModel.availableSubjects[index!].matriculasLength = matriculas?.count
         }
         self.subject = self.subjectModel.availableSubjects[index!]
+        self.isRegistered = true
         self.registeringStateLabel.isHidden = true
         self.registeredLabel.isHidden = false
         self.subjectModel.registeringState = ""
