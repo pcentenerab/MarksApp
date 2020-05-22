@@ -2,9 +2,9 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "group:/Users/alex/OneDrive - Universidad Polite&#x301;cnica de Madrid/TFG/Pruebas Swift/MarksApp/MarksApp/JavascriptCode">
+      location = "group:/Users/alex/OneDrive - Universidad Polite&#x301;cnica de Madrid/TFG/Pruebas Swift/MarksApp/MarksApp/MarksApp/JavascriptCode">
    </FileRef>
    <FileRef
-      location = "self:">
+      location = "self:..">
    </FileRef>
 </Workspace>

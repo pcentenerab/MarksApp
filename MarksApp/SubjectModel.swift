@@ -10,8 +10,6 @@ import Foundation
 import WebKit
 
 struct Subject: Codable {
-    // address del contrato desplegado
-    var address: String?
     
     // address del profesor que ha desplegado el contrato
     var profesor: String?
@@ -53,13 +51,7 @@ struct Subject: Codable {
     // le doy la dirección del alumno y el índice de la evaluación y me devuelve la nota
     var calificaciones: [String: [Int:Nota]]?
 }
-/*
-struct DatosAlumnoResponse: Codable {
-    var args: [String:String]
-    var fnIndex: Int
-    var value: [String: String]
-}
-*/
+
 let MessageHandler = "didFetchValue"
 
 class SubjectModel: UIViewController {
@@ -68,7 +60,6 @@ class SubjectModel: UIViewController {
     var loadSubjectState: String!
     var registeringState: String!
     var availableSubjects = [Subject]()
-    var registeredSubjects = [Subject]()
     var subjectsAcronyms: [String] = ["FTEL", "PROG", "CORE", "IWEB"]
     var subjectNames: [String] = ["Fundamentos de los Sistemas Telemáticos", "Programación", "Computación en Red", "Ingeniería Web"]
     var webView: WKWebView!
@@ -83,7 +74,7 @@ class SubjectModel: UIViewController {
     var registeringTxHash: String!
     
     func setup() -> Bool {
-        //Importo todos los ficheros necesarios
+
         self.setupState = "Importando contratos..."
         let config = WKWebViewConfiguration()
         
@@ -371,11 +362,6 @@ extension SubjectModel: WKScriptMessageHandler, WKNavigationDelegate {
                         self.keys![asignatura]![atributo] = dict
                     } else {
                         //Ya tengo la clave
-                        print("especiales")
-                        print(self.pending["Any"] as Any)
-                        print(self.pending[asignatura] as Any)
-                        let array = (self.keys![asignatura]![atributo] as! [String:[String]])
-                        print(array)
                     }
                 } else {
                     //Inicaliazo y añado
@@ -391,11 +377,6 @@ extension SubjectModel: WKScriptMessageHandler, WKNavigationDelegate {
                     self.keys![asignatura]![atributo] = clave
                 } else {
                     //Ya tengo la clave, por lo que no hago nada
-                    print("normales")
-                    print(self.pending["Any"] as Any)
-                    print(self.pending[asignatura] as Any)
-                    let array = self.keys![asignatura]![atributo]
-                    print(array as Any)
                 }
             }
         } else if body.localizedStandardContains("Datos") {
@@ -523,7 +504,6 @@ extension SubjectModel: WKScriptMessageHandler, WKNavigationDelegate {
                                         self.loadSubjectState = "Cargando calificaciones..."
                                     }
                                 } else {
-                                    //print("Ya me había llegado antes")
                                     self.webView.evaluateJavaScript(self.script+"getValue(\"\(asignatura)\", \"\(atributo)\", \"\((self.keys[asignatura]![atributo] as! [String])[param!])\")", completionHandler: nil)
                                 }
                             }
@@ -586,7 +566,7 @@ extension SubjectModel: WKScriptMessageHandler, WKNavigationDelegate {
                                 self.loadSubjectState = "Fin."
                             }
                         } else {
-                            print("No sé de qué me hablas bro")
+                            print("Mensaje no identificado")
                         }
                         if (self.pending["FTEL"] as! [Int]).count == 0 && (self.pending["PROG"] as! [Int]).count == 0 && (self.pending["CORE"] as! [Int]).count == 0 && (self.pending["IWEB"] as! [Int]).count == 0 {
                             self.pending["Any"] = -1
@@ -665,17 +645,13 @@ extension SubjectModel: WKScriptMessageHandler, WKNavigationDelegate {
                 self.readTransactionState(txHash: self.registeringTxHash)
             }
         } else if body.localizedStandardContains("Estado actualizado") {
-            print("--"+body)
+            print(body)
             self.pending["Any"] = 0
-            //print(self.pending)
             self.lastMessages.append(body)
         } else {
-            print("random")
             print(body)
             self.lastMessages.append(body)
         }
         
-        // Para mandar varios parametros y recogerlos
-        // https://medium.com/john-lewis-software-engineering/ios-wkwebview-communication-using-javascript-and-swift-ee077e0127eb
     }
 }

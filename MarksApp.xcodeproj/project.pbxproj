@@ -20,7 +20,6 @@
 		FAC907C2246D3E37008EB88D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = FAC907C0246D3E37008EB88D /* Main.storyboard */; };
 		FAC907C4246D3E39008EB88D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FAC907C3246D3E39008EB88D /* Assets.xcassets */; };
 		FAC907C7246D3E39008EB88D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = FAC907C5246D3E39008EB88D /* LaunchScreen.storyboard */; };
-		FAF2CA8E246EEAF6006D9F3C /* JavascriptCode in Resources */ = {isa = PBXBuildFile; fileRef = FAF2CA8D246E8F08006D9F3C /* JavascriptCode */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -39,7 +38,7 @@
 		FAC907C3246D3E39008EB88D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		FAC907C6246D3E39008EB88D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		FAC907C8246D3E39008EB88D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		FAF2CA8D246E8F08006D9F3C /* JavascriptCode */ = {isa = PBXFileReference; lastKnownFileType = folder; name = JavascriptCode; path = "/Users/alex/OneDrive - Universidad Politécnica de Madrid/TFG/Pruebas Swift/MarksApp/MarksApp/JavascriptCode"; sourceTree = "<absolute>"; };
+		FAEDBED02477EA71005613D4 /* JavascriptCode */ = {isa = PBXFileReference; lastKnownFileType = folder; name = JavascriptCode; path = "/Users/alex/OneDrive - Universidad Politécnica de Madrid/TFG/Pruebas Swift/MarksApp/MarksApp/MarksApp/JavascriptCode"; sourceTree = "<absolute>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -82,8 +81,8 @@
 				FA1200962472B8D100CC2119 /* LoadingViewController.swift */,
 				FAB8E3E7246D892F003F391D /* SubjectViewController.swift */,
 				FA4D3391247196870020BAF3 /* MarkCell.swift */,
+				FAEDBED02477EA71005613D4 /* JavascriptCode */,
 				FAC907C0246D3E37008EB88D /* Main.storyboard */,
-				FAF2CA8D246E8F08006D9F3C /* JavascriptCode */,
 				FAC907C3246D3E39008EB88D /* Assets.xcassets */,
 				FAC907C5246D3E39008EB88D /* LaunchScreen.storyboard */,
 				FAC907C8246D3E39008EB88D /* Info.plist */,
@@ -149,7 +148,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FAF2CA8E246EEAF6006D9F3C /* JavascriptCode in Resources */,
 				FAC907C7246D3E39008EB88D /* LaunchScreen.storyboard in Resources */,
 				FAC907C4246D3E39008EB88D /* Assets.xcassets in Resources */,
 				FAC907C2246D3E37008EB88D /* Main.storyboard in Resources */,
